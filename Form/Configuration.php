@@ -14,6 +14,7 @@ namespace GoogleTagManager\Form;
 
 
 use GoogleTagManager\GoogleTagManager;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Thelia\Core\Translation\Translator;
 use Thelia\Form\BaseForm;
 
@@ -29,10 +30,10 @@ class Configuration extends BaseForm
         $form = $this->formBuilder;
 
         $lang = $this->getRequest()->getSession()->get('thelia.admin.edition.lang');
-        $value = GoogleTagManager::getConfigValue('googletagmanager_gtmId', null, $lang->getLocale());
+        $value = GoogleTagManager::getConfigValue('googletagmanager_gtmId');
         $form->add(
             "gtmId",
-            "text",
+            TextType::class,
             array(
                 'data'  => $value,
                 'label' => Translator::getInstance()->trans("Google Tag Manager Id",[] ,GoogleTagManager::DOMAIN_NAME),
@@ -41,9 +42,5 @@ class Configuration extends BaseForm
                 ),
             )
         );
-    }
-
-    public function getName(){
-        return 'googletagmanager';
     }
 }

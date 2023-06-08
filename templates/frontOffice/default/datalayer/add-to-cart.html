@@ -1,0 +1,34 @@
+<script>
+
+    let trackPseToCart = async function(e) {
+
+        const response = await fetch('{url path='/googletagmanager/getCartItem'}', {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                pseId: e.detail.pse,
+                quantity: e.detail.quantity
+            })
+        })
+
+        const resultJson = await response.json();
+
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ ecommerce: null });
+        window.dataLayer.push({
+            event: 'add_to_cart',
+            ecommerce: {
+                items: JSON.parse(resultJson)
+            },
+        });
+
+        console.log(window.dataLayer)
+
+    }
+
+    document.addEventListener('addPseToCart', trackPseToCart)
+
+</script>

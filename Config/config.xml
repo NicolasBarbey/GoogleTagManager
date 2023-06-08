@@ -7,12 +7,25 @@
         <form name="googletagmanager.configuration.form" class="GoogleTagManager\Form\Configuration" />
     </forms>
 
+    <services>
+        <service id="googletamanager.service" class="GoogleTagManager\Service\GoogleTagService">
+        <argument type="service" id="request_stack"/>
+        </service>
+
+        <service id="googletamanager.tag.listener" class="GoogleTagManager\Listener\GoogleTagListener">
+            <argument type="service" id="googletamanager.service"/>
+            <argument type="service" id="request_stack"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+    </services>
+
     <hooks>
-        <hook id="googletagmanager.head.hook" class="GoogleTagManager\Hook\FrontHook" scope="request">
+        <hook id="googletagmanager.front.hook" class="GoogleTagManager\Hook\FrontHook" scope="request">
             <tag name="hook.event_listener" event="main.head-top" method="onMainHeadTop"/>
-        </hook>
-        <hook id="googletagmanager.body.hook" class="GoogleTagManager\Hook\FrontHook" scope="request">
             <tag name="hook.event_listener" event="main.body-top" method="onMainBodyTop"/>
+            <tag name="hook.event_listener" event="main.javascript-initialization" method="onMainJsInit"/>
+            <tag name="hook.event_listener" event="product.bottom" method="onProductBottom"/>
+            <argument type="service" id="googletamanager.service"/>
         </hook>
         <hook id="googletagmanager.configuration.hook" class="GoogleTagManager\Hook\BackHook" scope="request">
             <tag name="hook.event_listener" event="module.configuration" type="back" method="onModuleConfiguration"/>

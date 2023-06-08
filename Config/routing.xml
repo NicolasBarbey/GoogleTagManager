@@ -7,4 +7,12 @@
     <route id="googletagmanager.configuration" path="/admin/module/googletagmanager/save" methods="post">
         <default key="_controller">GoogleTagManager\Controller\Configuration::saveAction</default>
     </route>
+
+    <route id="googletagmanager.item" path="/googletagmanager/getItem" methods="post">
+        <default key="_controller">GoogleTagManager\Controller\ProductDataController::getProductDataWithUrl</default>
+    </route>
+
+    <route id="googletagmanager.cart.item" path="/googletagmanager/getCartItem" methods="post">
+        <default key="_controller">GoogleTagManager\Controller\ProductDataController::getCartItem</default>
+    </route>
 </routes>

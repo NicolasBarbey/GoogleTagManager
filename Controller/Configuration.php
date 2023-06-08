@@ -15,8 +15,10 @@ namespace GoogleTagManager\Controller;
 
 use GoogleTagManager\GoogleTagManager;
 use Thelia\Controller\Admin\BaseAdminController;
+use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
+use Thelia\Core\Translation\Translator;
 
 /**
  * Class Configuration
@@ -25,24 +27,24 @@ use Thelia\Core\Security\Resource\AdminResources;
  */
 class Configuration extends BaseAdminController
 {
-    public function saveAction(){
+    public function saveAction(Session $session){
 
         if (null !== $response = $this->checkAuth(array(AdminResources::MODULE), array('googletagmanager'), AccessManager::UPDATE)) {
             return $response;
         }
 
-        $form = new \GoogleTagManager\Form\Configuration($this->getRequest());
+        $form = $this->createForm("googletagmanager.configuration.form");
         $response=null;
 
         try {
             $vform = $this->validateForm($form);
             $data = $vform->getData();
-            $lang = $this->getRequest()->getSession()->get('thelia.admin.edition.lang');
+            $lang = $session->get('thelia.admin.edition.lang');
 
-            GoogleTagManager::setConfigValue('googletagmanager_gtmId', $data['gtmId'], $lang->getlocale());
+            GoogleTagManager::setConfigValue('googletagmanager_gtmId', $data['gtmId']);
         } catch (\Exception $e) {
             $this->setupFormErrorContext(
-                $this->getTranslator()->trans("Syntax error"),
+                Translator::getInstance()->trans("Syntax error"),
                 $e->getMessage(),
                 $form,
                 $e
