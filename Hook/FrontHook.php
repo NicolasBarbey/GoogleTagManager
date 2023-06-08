@@ -39,7 +39,7 @@ class FrontHook extends BaseHook
     public function onMainHeadTop(HookRenderEvent $event)
     {
         if ($gtmId = GoogleTagManager::getConfigValue('googletagmanager_gtmId')) {
-            $view = $this->request->get('_view');
+            $view = $this->getRequest()->get('_view');
 
             $event->add($this->render('datalayer/thelia-page-view.html', ['data' => $this->googleTagService->getTheliaPageViewParameters()]));
 
@@ -51,16 +51,16 @@ class FrontHook extends BaseHook
                 $event->add($this->render('datalayer/view-item.html', ['eventName' => 'view_item']));
             }
 
-            if (null !== $authAction = $this->request->getSession()->get(GoogleTagManager::GOOGLE_TAG_TRIGGER_LOGIN)) {
+            if (null !== $authAction = $this->getRequest()->getSession()->get(GoogleTagManager::GOOGLE_TAG_TRIGGER_LOGIN)) {
                 $event->add($this->render('datalayer/thelia-page-view.html', [
                     'data' => $this->googleTagService->getLogInData($authAction)
                 ]));
-                $this->request->getSession()->set(GoogleTagManager::GOOGLE_TAG_TRIGGER_LOGIN, null);
+                $this->getRequest()->getSession()->set(GoogleTagManager::GOOGLE_TAG_TRIGGER_LOGIN, null);
             }
 
             if ($view === 'order-placed') {
                 $event->add($this->render('datalayer/thelia-page-view.html', [
-                    'data' => $this->googleTagService->getPurchaseData($this->request->get('order_id'))
+                    'data' => $this->googleTagService->getPurchaseData($this->getRequest()->get('order_id'))
                 ]));
             }
 
@@ -91,7 +91,7 @@ class FrontHook extends BaseHook
 
     public function onMainJsInit(HookRenderEvent $event)
     {
-        $view = $this->request->get('_view');
+        $view = $this->getRequest()->get('_view');
 
         if (in_array($view, ['category', 'brand', 'search'])) {
             $event->add($this->render('datalayer/select-item.html'));
@@ -102,7 +102,7 @@ class FrontHook extends BaseHook
     public function onProductBottom(HookRenderEvent $event)
     {
         $productId = $event->getArgument('product');
-        $this->request->getSession()->set(GoogleTagManager::GOOGLE_TAG_VIEW_ITEM, $productId);
+        $this->getRequest()->getSession()->set(GoogleTagManager::GOOGLE_TAG_VIEW_ITEM, $productId);
     }
 
     protected function getLang()

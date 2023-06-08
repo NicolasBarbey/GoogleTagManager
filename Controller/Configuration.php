@@ -27,11 +27,12 @@ use Thelia\Core\Translation\Translator;
  */
 class Configuration extends BaseAdminController
 {
-    public function saveAction(Session $session){
+    public function saveAction(){
 
         if (null !== $response = $this->checkAuth(array(AdminResources::MODULE), array('googletagmanager'), AccessManager::UPDATE)) {
             return $response;
         }
+        $session = $this->getRequest()->getSession();
 
         $form = $this->createForm("googletagmanager.configuration.form");
         $response=null;
