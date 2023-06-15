@@ -47,7 +47,7 @@ class ProductDataController extends BaseFrontController
             $result = $googleTagService->getProductItem($product, $lang, $currency);
         }
 
-        return new JsonResponse(json_encode([$result]));
+        return new JsonResponse(json_encode([$result], JSON_HEX_APOS));
     }
 
     public function getCartItem()
@@ -80,6 +80,6 @@ class ProductDataController extends BaseFrontController
 
         $result = $googleTagService->getProductItem($product, $lang, $currency, $pse, $quantity);
 
-        return new JsonResponse(json_encode([$result]));
+        return new JsonResponse(json_encode([$result], JSON_HEX_APOS));
     }
 }

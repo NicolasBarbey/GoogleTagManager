@@ -7,6 +7,7 @@ use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Model\Base\CurrencyQuery;
 use Thelia\Model\BrandQuery;
 use Thelia\Model\CartItem;
+use Thelia\Model\CartQuery;
 use Thelia\Model\Category;
 use Thelia\Model\CategoryQuery;
 use Thelia\Model\ConfigQuery;
@@ -22,6 +23,7 @@ use Thelia\Model\ProductQuery;
 use Thelia\Model\ProductSaleElements;
 use Thelia\Model\ProductSaleElementsQuery;
 use Thelia\TaxEngine\Calculator;
+use Thelia\TaxEngine\TaxEngine;
 
 class GoogleTagService
 {
@@ -29,10 +31,15 @@ class GoogleTagService
      * @var RequestStack
      */
     private $requestStack;
+    /**
+     * @var TaxEngine
+     */
+    private $taxEngine;
 
-    public function __construct(RequestStack $requestStack)
+    public function __construct(RequestStack $requestStack,TaxEngine $taxEngine)
     {
         $this->requestStack = $requestStack;
+        $this->taxEngine = $taxEngine;
     }
 
     public function getTheliaPageViewParameters()
@@ -64,7 +71,7 @@ class GoogleTagService
             $result['google_tag_params']['ecomm_category'] = $this->getPageName($view);
         }
 
-        if (in_array($pageType, ['product', 'cart', 'purchase'])) {
+        if (in_array($pageType, ['product'])) {
             $result['google_tag_params']['ecomm_prodid'] = $this->getPageProductRef($view);
         }
 
@@ -72,7 +79,7 @@ class GoogleTagService
             $result['google_tag_params']['ecomm_totalvalue'] = $this->getOrderTotalAmount($view);
         }
 
-        return json_encode($result);
+        return json_encode($result, JSON_HEX_APOS );
     }
 
     public function getProductItem(
@@ -156,7 +163,7 @@ class GoogleTagService
         return $item;
     }
 
-    public function getProductItems(array $productIds, $itemList = false)
+    public function getProductItems(array $productIds = null, $itemList = false)
     {
         $session = $this->requestStack->getCurrentRequest()->getSession();
         $products = ProductQuery::create()->filterById($productIds)->find();
@@ -196,7 +203,53 @@ class GoogleTagService
         return json_encode($result);
     }
 
-    public function getPurchaseData($orderId)
+    public function getCartData(int $cartId, $addressCountry): string
+    {
+        $cart = CartQuery::create()->findPk($cartId);
+
+        if (!$cart) {
+            return json_encode([]);
+        }
+
+        $items = array_map(function (CartItem $cartItem) use ($addressCountry) {
+            return $this->getProductCartItems($cartItem, $addressCountry);
+        }, iterator_to_array($cart->getCartItems()));
+
+        return json_encode([
+            'event' => 'view_cart',
+            'currency' => $cart->getCurrency()->getCode(),
+            'value' => $cart->getTaxedAmount($addressCountry),
+            'items' => $items
+        ], JSON_HEX_APOS);
+    }
+
+    public function getCheckOutData(int $cartId, $addressCountry): string
+    {
+        $cart = CartQuery::create()->findPk($cartId);
+
+        if (!$cart) {
+            return json_encode([]);
+        }
+
+        /** @var Session $session */
+        $session = $this->requestStack->getCurrentRequest()->getSession();
+
+        $coupons = implode(',',$session->getConsumedCoupons());
+
+        $items = array_map(function (CartItem $cartItem) use ($addressCountry) {
+            return $this->getProductCartItems($cartItem, $addressCountry);
+        }, iterator_to_array($cart->getCartItems()));
+
+        return json_encode([
+            'event' => 'begin_checkout',
+            'currency' => $cart->getCurrency()->getCode(),
+            'value' => $cart->getTaxedAmount($addressCountry),
+            'coupon' => $coupons,
+            'items' => $items
+        ], JSON_HEX_APOS);
+    }
+
+    public function getPurchaseData(int $orderId)
     {
         $order = OrderQuery::create()->findPk($orderId);
 
@@ -235,7 +288,7 @@ class GoogleTagService
                     'country' => $invoiceAddress->getCountry()->getIsoalpha2()
                 ]
             ]
-        ]);
+        ], JSON_HEX_APOS);
     }
 
     public function getOrderProductItems(Order $order, Country $country)
@@ -257,6 +310,20 @@ class GoogleTagService
         }
 
         return $items;
+    }
+
+    public function getProductCartItems(CartItem $cartItem, Country $country)
+    {
+        $session = $this->requestStack->getCurrentRequest()->getSession();
+
+        /** @var Lang $lang */
+        $lang = $session->get('thelia.current.lang');
+
+        $currency = $session->getCurrency() ?: CurrencyQuery::create()->findOneByByDefault(1);
+
+        $product = $cartItem->getProductSaleElements()->getProduct();
+
+        return $this->getProductItem($product, $lang, $currency, $cartItem->getProductSaleElements(), $cartItem->getQuantity(), false, true, $country);
     }
 
     protected function getCategories(Category $category, $locale, $categories)

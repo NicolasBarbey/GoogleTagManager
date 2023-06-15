@@ -9,7 +9,8 @@
 
     <services>
         <service id="googletamanager.service" class="GoogleTagManager\Service\GoogleTagService">
-        <argument type="service" id="request_stack"/>
+            <argument type="service" id="request_stack"/>
+            <argument type="service" id="thelia.taxEngine"/>
         </service>
 
         <service id="googletamanager.tag.listener" class="GoogleTagManager\Listener\GoogleTagListener">
@@ -26,6 +27,9 @@
             <tag name="hook.event_listener" event="main.javascript-initialization" method="onMainJsInit"/>
             <tag name="hook.event_listener" event="product.bottom" method="onProductBottom"/>
             <argument type="service" id="googletamanager.service"/>
+            <argument type="service" id="event_dispatcher"/>
+            <argument type="service" id="thelia.taxEngine"/>
+            <argument type="service" id="request_stack"/>
         </hook>
         <hook id="googletagmanager.configuration.hook" class="GoogleTagManager\Hook\BackHook" scope="request">
             <tag name="hook.event_listener" event="module.configuration" type="back" method="onModuleConfiguration"/>

@@ -15,9 +15,13 @@ namespace GoogleTagManager\Hook;
 
 use GoogleTagManager\GoogleTagManager;
 use GoogleTagManager\Service\GoogleTagService;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Thelia\Core\Event\Hook\HookRenderEvent;
 use Thelia\Core\Hook\BaseHook;
+use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Model\LangQuery;
+use Thelia\TaxEngine\TaxEngine;
 
 /**
  * Class FrontHook
@@ -30,10 +34,21 @@ class FrontHook extends BaseHook
      * @var GoogleTagService
      */
     private $googleTagService;
+    private $eventDispatcher;
+    private $taxEngine;
+    private $requestStack;
 
-    public function __construct(GoogleTagService $googleTagService)
+    public function __construct(
+        GoogleTagService $googleTagService,
+        EventDispatcherInterface $eventDispatcher,
+        TaxEngine $taxEngine,
+        RequestStack $requestStack
+    )
     {
         $this->googleTagService = $googleTagService;
+        $this->eventDispatcher = $eventDispatcher;
+        $this->taxEngine = $taxEngine;
+        $this->requestStack = $requestStack;
     }
 
     public function onMainHeadTop(HookRenderEvent $event)
@@ -58,9 +73,23 @@ class FrontHook extends BaseHook
                 $this->getRequest()->getSession()->set(GoogleTagManager::GOOGLE_TAG_TRIGGER_LOGIN, null);
             }
 
-            if ($view === 'order-placed') {
+            if ($view === 'order-delivery') {
+                /** @var Session $session */
+                $session = $this->getRequest()->getSession();
+                $cart = $session->getSessionCart($this->eventDispatcher);
+
                 $event->add($this->render('datalayer/thelia-page-view.html', [
-                    'data' => $this->googleTagService->getPurchaseData($this->getRequest()->get('order_id'))
+                    'data' => $this->googleTagService->getCartData($cart->getId(), $this->taxEngine->getDeliveryCountry())
+                ]));
+
+                $event->add($this->render('datalayer/thelia-page-view.html', [
+                    'data' => $this->googleTagService->getCheckOutData($cart->getId(), $this->taxEngine->getDeliveryCountry())
+                ]));
+            }
+
+            if ($view === 'order-placed' && $orderId = $this->getRequest()->get('order_id')) {
+                $event->add($this->render('datalayer/thelia-page-view.html', [
+                    'data' => $this->googleTagService->getPurchaseData($orderId)
                 ]));
             }
 
@@ -78,9 +107,7 @@ class FrontHook extends BaseHook
 
     public function onMainBodyTop(HookRenderEvent $event)
     {
-        $value = GoogleTagManager::getConfigValue('googletagmanager_gtmId');
-
-        if ("" != $value) {
+        if (!$value = GoogleTagManager::getConfigValue('googletagmanager_gtmId')) {
             $event->add("<!-- Google Tag Manager (noscript) -->" .
                 "<noscript><iframe src='https://www.googletagmanager.com/ns.html?id=" . $value . "' " .
                 "height='0' width='0' style='display:none;visibility:hidden'></iframe></noscript>" .
@@ -96,6 +123,8 @@ class FrontHook extends BaseHook
         if (in_array($view, ['category', 'brand', 'search'])) {
             $event->add($this->render('datalayer/select-item.html'));
         }
+
+        //include event listener to handle add to cart event (check README)
         $event->add($this->render('datalayer/add-to-cart.html'));
     }
 

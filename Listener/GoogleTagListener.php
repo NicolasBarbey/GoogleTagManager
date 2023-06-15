@@ -60,7 +60,7 @@ class GoogleTagListener implements EventSubscriberInterface
             ]
         ];
 
-        $event->setResult(json_encode($result));
+        $event->setResult(json_encode($result, JSON_HEX_APOS));
 
         $session->set(GoogleTagManager::GOOGLE_TAG_VIEW_LIST_ITEM, null);
     }
@@ -80,7 +80,7 @@ class GoogleTagListener implements EventSubscriberInterface
             ]
         ];
 
-        $event->setResult(json_encode($result));
+        $event->setResult(json_encode($result, JSON_HEX_APOS));
 
         $session->set(GoogleTagManager::GOOGLE_TAG_VIEW_ITEM, null);
     }
