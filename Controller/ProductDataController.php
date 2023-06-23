@@ -5,6 +5,7 @@ namespace GoogleTagManager\Controller;
 use GoogleTagManager\Service\GoogleTagService;
 use Thelia\Controller\Front\BaseFrontController;
 use Thelia\Core\HttpFoundation\JsonResponse;
+use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Model\Base\RewritingUrlQuery;
 use Thelia\Model\Currency;
 use Thelia\Model\Lang;
@@ -33,13 +34,14 @@ class ProductDataController extends BaseFrontController
             ->filterByUrl(substr($productUrl['path'], 1))
             ->findOne();
 
+        /** @var Session $session */
         $session = $request->getSession();
 
         /** @var Lang $lang */
         $lang = $session->get('thelia.current.lang');
 
         /** @var Currency $currency */
-        $currency = $session->get('thelia.current.currency');
+        $currency = $session->getCurrency();
 
 
         if (null !== $rewriteUrl) {
@@ -70,13 +72,14 @@ class ProductDataController extends BaseFrontController
         $pse = ProductSaleElementsQuery::create()->findPk($pseId);
         $product = $pse->getProduct();
 
+        /** @var Session $session */
         $session = $request->getSession();
 
         /** @var Lang $lang */
         $lang = $session->get('thelia.current.lang');
 
         /** @var Currency $currency */
-        $currency = $session->get('thelia.current.currency');
+        $currency = $session->getCurrency();
 
         $result = $googleTagService->getProductItem($product, $lang, $currency, $pse, $quantity);
 
