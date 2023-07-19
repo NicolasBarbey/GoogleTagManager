@@ -122,7 +122,7 @@ class GoogleTagService
 
         $item = [
             'item_id' => $product->getId(),
-            'item_name' => $product->getRef(),
+            'item_name' => $product->getTitle(),
             'item_brand' => null !== $brand ? $brand->setLocale($lang->getLocale())->getTitle() : ConfigQuery::read('store_name'),
             'affiliation' => ConfigQuery::read('store_name'),
             'price' => round($productPrice, 2),
