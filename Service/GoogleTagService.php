@@ -18,6 +18,7 @@ use Thelia\Model\Currency;
 use Thelia\Model\CurrencyQuery;
 use Thelia\Model\Customer;
 use Thelia\Model\Lang;
+use Thelia\Model\LangQuery;
 use Thelia\Model\Order;
 use Thelia\Model\OrderProduct;
 use Thelia\Model\OrderQuery;
@@ -238,7 +239,7 @@ class GoogleTagService
         $products = ProductQuery::create()->filterById($productIds)->find();
 
         /** @var Lang $lang */
-        $lang = $session->get('thelia.current.lang');
+        $lang = $session->get('thelia.current.lang') ?: LangQuery::create()->filterByByDefault(1)->findOne();
 
         $currency = $session->getCurrency() ?: CurrencyQuery::create()->findOneByByDefault(1);
 
@@ -450,7 +451,7 @@ class GoogleTagService
         $products = $order->getOrderProducts();
 
         /** @var Lang $lang */
-        $lang = $session->get('thelia.current.lang');
+        $lang = $session->get('thelia.current.lang') ?: LangQuery::create()->filterByByDefault(1)->findOne();
 
         $currency = $session->getCurrency() ?: CurrencyQuery::create()->findOneByByDefault(1);
 
@@ -471,7 +472,7 @@ class GoogleTagService
         $session = $this->requestStack->getSession();
 
         /** @var Lang $lang */
-        $lang = $session->get('thelia.current.lang');
+        $lang = $session->get('thelia.current.lang') ?: LangQuery::create()->filterByByDefault(1)->findOne();
 
         $currency = $session->getCurrency() ?: CurrencyQuery::create()->findOneByByDefault(1);
 
