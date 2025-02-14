@@ -13,6 +13,7 @@ use Thelia\Model\Base\CurrencyQuery;
 use Thelia\Model\Base\RewritingUrlQuery;
 use Thelia\Model\Currency;
 use Thelia\Model\Lang;
+use Thelia\Model\LangQuery;
 use Thelia\Model\ProductQuery;
 use Thelia\Model\ProductSaleElementsQuery;
 
@@ -42,7 +43,7 @@ class ProductDataController extends BaseFrontController
         $session = $request->getSession();
 
         /** @var Lang $lang */
-        $lang = $session->get('thelia.current.lang');
+        $lang = $session->get('thelia.current.lang') ?: LangQuery::create()->filterByByDefault(1)->findOne();
 
         /** @var Currency $currency */
         $currency = $session->get('thelia.current.currency') ?: CurrencyQuery::create()->filterByByDefault(1)->findOne();
@@ -79,7 +80,7 @@ class ProductDataController extends BaseFrontController
         $session = $request->getSession();
 
         /** @var Lang $lang */
-        $lang = $session->get('thelia.current.lang');
+        $lang = $session->get('thelia.current.lang') ?: LangQuery::create()->filterByByDefault(1)->findOne();
 
         /** @var Currency $currency */
         $currency = $session->get('thelia.current.currency') ?: CurrencyQuery::create()->filterByByDefault(1)->findOne();

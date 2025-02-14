@@ -14,6 +14,7 @@ use Thelia\Core\Event\Loop\LoopExtendsParseResultsEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Model\CurrencyQuery;
 use Thelia\Model\Lang;
+use Thelia\Model\LangQuery;
 use Thelia\Model\ProductQuery;
 
 class GoogleTagListener implements EventSubscriberInterface
@@ -73,7 +74,7 @@ class GoogleTagListener implements EventSubscriberInterface
         $product = ProductQuery::create()->filterById($productId)->findOne();
 
         /** @var Lang $lang */
-        $lang = $session->get('thelia.current.lang');
+        $lang = $session->get('thelia.current.lang') ?: LangQuery::create()->filterByByDefault(1)->findOne();
 
         $currency = $session->getCurrency() ?: CurrencyQuery::create()->findOneByByDefault(1);
 
