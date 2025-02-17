@@ -69,7 +69,9 @@ class GoogleTagListener implements EventSubscriberInterface
     {
         $session = $this->requestStack->getSession();
 
-        $productId = $session->get(GoogleTagManager::GOOGLE_TAG_VIEW_ITEM);
+        if (!$productId = $session->get(GoogleTagManager::GOOGLE_TAG_VIEW_ITEM)) {
+            return;
+        }
 
         $product = ProductQuery::create()->filterById($productId)->findOne();
 
